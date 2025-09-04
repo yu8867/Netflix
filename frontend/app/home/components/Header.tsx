@@ -8,7 +8,7 @@ const Header = () => {
       <div className="h-1/4"></div>
       <div className="h-1/2 flex flex-col justify-center items-center text-2xl gap-6">
         <Link href="/home"><div className="hover:text-4xl">Home</div></Link>
-        <Link href="/home"><div className="hover:text-4xl">Serach</div></Link>
+        <Link href="/home"><div className="hover:text-4xl">Search</div></Link>
         <Link href="/home"><div className="hover:text-4xl">Rank</div></Link>
         <Link href="/home"><div className="hover:text-4xl">History</div></Link>
       </div>
