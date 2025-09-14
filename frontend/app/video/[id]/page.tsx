@@ -44,7 +44,10 @@ const page = () => {
     router.push("/home");
   };
 
-  if (!video) return <div className="bg-black text-white min-h-screen">aa</div>;
+  if (!video) { 
+    return <div className="bg-black text-white min-h-screen">aa</div>;
+  }
+  
   return (
     <div className="bg-black text-white min-h-screen">
       <button

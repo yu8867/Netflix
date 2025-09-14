@@ -34,8 +34,8 @@ const ScrollToVideo = () => {
   }, []);
 
   return (
-    <div className="px-6">
-      <h2 className="text-2xl mb-3">おすすめ作品</h2>
+    <div className="px-6 my-12">
+      <h2 className="text-4xl mb-3">おすすめ作品</h2>
       <div className="flex space-x-4 overflow-x-auto p-4 mx-4">
         {videos.map((video) => (
           <Link key={video.id} href={`/video/${video.id}`}>

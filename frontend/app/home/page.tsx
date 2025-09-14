@@ -3,20 +3,25 @@
 import { useEffect, useState } from "react";
 import ScrollToVideo from "../home/components/ScrollToVideo";
 import fetchWithRefresh from "./api";
+import { useRouter } from "next/navigation";
+import Header from "./components/Header";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const checkUser = async () => {
       const res = await fetchWithRefresh();
-      if (res.ok) {
+      if (res?.ok) {
         const userData = await res.json();
         setUser(userData);
         setLoading(false);
       } else {
+        console.log("oiobv");
         setUser(null);
+        router.push("/login");
       }
     };
 
@@ -42,12 +47,15 @@ export default function Home() {
 
   return (
     <div className="bg-black text-white min-h-screen">
-      <h1 className="text-4xl font-bold text-center py-6">
-        🎬 MyFlix {user.email}
-      </h1>
-      <ScrollToVideo />
-      <ScrollToVideo />
-      <ScrollToVideo />
+      <Header />
+      <div className="ml-[6.25%]">
+        <div className="w-full flex justify-center">
+          <img src="./netflix.png" width={256} className="" />
+        </div>
+        <ScrollToVideo />
+        <ScrollToVideo />
+        <ScrollToVideo />
+      </div>
     </div>
   );
 }
