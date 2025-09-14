@@ -11,7 +11,7 @@ const ScrollToVideo = () => {
   useEffect(() => {
     const checkUser = async () => {
       let res = await fetchWithRefresh();
-      if (res.ok) {
+      if (res?.ok) {
         let token = localStorage.getItem("access_token");
         let res = await fetch("http://127.0.0.1:8000/videos", {
           headers: {

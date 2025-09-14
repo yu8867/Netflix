@@ -13,3 +13,10 @@ class config:
     S3_SECRET_KEY=os.getenv('S3_SECRET_KEY')
     S3_REGION=os.getenv('S3_REGION')
     TMDB_API_KEY=os.getenv('TMDB_API')
+
+    # PostgreSQL
+    POSTGRES_USER = os.getenv("POSTGRES_USER")
+    POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+    POSTGRES_DB = os.getenv("POSTGRES_DB")
+    POSTGRES_HOST = os.getenv("POSTGRES_HOST")
+    POSTGRES_PORT = os.getenv("POSTGRES_PORT")

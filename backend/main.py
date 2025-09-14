@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from models import user, video, history
+from sqlalchemy.orm import Session
 from database import engine
 from auth.routes import router as auth_router
 from videos.routes import router as video_router
@@ -33,3 +34,17 @@ app.include_router(history_router)
 @app.get("/")
 def root():
     return {"message": "Welcome to MyFlix API"}
+
+# DB セッションを取得する Dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+@app.get("/")
+def root(db: Session = Depends(get_db)):
+    # DB に接続できるか確認するだけ
+    result = db.execute("SELECT NOW();").fetchone()
+    return {"message": "Hello from FastAPI + PostgreSQL", "time": result[0]}

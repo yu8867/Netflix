@@ -19,7 +19,6 @@ export default function Home() {
         setUser(userData);
         setLoading(false);
       } else {
-        console.log("oiobv");
         setUser(null);
         router.push("/login");
       }

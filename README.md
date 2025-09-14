@@ -1,11 +1,26 @@
 # Netflix
 
-uvicorn main:app --reload
+## 起動
 
-hiroki@example.com
-123456
+docker compose up --build
 
-🪜 全体のステップ計画
+## ダミー
+
+email: hiroki@example.com
+password: 123456
+
+## 技術スタック
+
+フロントエンド：Typescript（React・Next.js）
+バックエンド：Python（FastAPI）
+データベース：PostgreSQL
+Web サーバー：Nginx
+
+## やること
+
+・ランキング形式の作成（おすすめ、人気、ジャンル）
+
+全体のステップ計画
 Step 1: 動画をアップロードして再生できる環境を作る
 AWS S3 に動画を保存
 Next.js で <video> を使い再生
