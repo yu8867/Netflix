@@ -3,6 +3,7 @@ from config import config
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
+
 ###### Amazon RDS ######
 # SQLALCHEMY_DATABASE_URL = "sqlite:///./myflix.db"
 # SQLALCHEMY_DATABASE_URL="postgresql://postgres:kiichanQ217@database-3.cjy8ouucwvo8.ap-northeast-1.rds.amazonaws.com:5432/postgres"
@@ -16,9 +17,9 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 # engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 
 ###### postgreSQL ######
-# # 接続 URL を組み立てる
 SQLALCHEMY_DATABASE_URL = (
     f"postgresql://{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD}@{config.POSTGRES_HOST}:{config.POSTGRES_PORT}/{config.POSTGRES_DB}"
+    # f"postgresql://{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD}@localhost:{config.POSTGRES_PORT}/{config.POSTGRES_DB}"
     # f"postgresql://{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD}@localhost:5432/{config.POSTGRES_DB}"
 )
 
@@ -29,7 +30,6 @@ print("🔗 DB URL:", SQLALCHEMY_DATABASE_URL)
 print(SQLALCHEMY_DATABASE_URL)
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
-
 
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 Base = declarative_base()
