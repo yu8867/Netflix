@@ -8,6 +8,6 @@ class Video(Base):
     id          = Column(Integer, primary_key=True, index=True)
     title       = Column(String, unique=True, index=True)
     description = Column(String, unique=False, index=True)
-    thumbnail   = Column(String, unique=False, index=True)
-    url         = Column(String, unique=False, index=True)
+    thumbnail_url = Column(String, unique=False, index=True)
+    video_url   = Column(String, unique=False, index=True)
     uploaded_at = Column(DateTime, default=datetime.utcnow)
