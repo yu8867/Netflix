@@ -52,8 +52,8 @@ export default function Home() {
           <img src="./netflix.png" width={256} className="" />
         </div>
         <ScrollToVideo />
-        <ScrollToVideo />
-        <ScrollToVideo />
+        {/* <ScrollToVideo />
+        <ScrollToVideo /> */}
       </div>
     </div>
   );
