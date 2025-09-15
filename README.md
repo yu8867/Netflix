@@ -2,7 +2,11 @@
 
 ## 起動
 
-docker compose up --build
+- postgreSQL
+  - brew services list
+  - psql postgresql://myuser:passwordabva23fkenjavnklanbv32b2j3@localhost:5432/netflixDB
+- Docker Compose
+  - docker compose up --build
 
 ## ダミー
 
