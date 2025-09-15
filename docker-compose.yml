@@ -4,7 +4,9 @@ services:
   db:
     image: postgres:15
     container_name: postgres_db
-    restart: "no"
+    restart: "always"
+    env_file:
+      - ./backend/.env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -39,6 +41,7 @@ services:
       - "3000:3000"
     volumes:
       - ./frontend:/app
+      - /app/node_modules
 
   nginx:
     image: nginx:latest
