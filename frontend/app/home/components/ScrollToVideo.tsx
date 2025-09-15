@@ -29,9 +29,10 @@ const ScrollToVideo = () => {
         router.push("/login");
       }
     };
-
     checkUser();
   }, []);
+
+  console.log(videos);
 
   return (
     <div className="px-6 my-12">
@@ -39,13 +40,15 @@ const ScrollToVideo = () => {
       <div className="flex space-x-4 overflow-x-auto p-4 mx-4">
         {videos.map((video) => (
           <Link key={video.id} href={`/video/${video.id}`}>
-            <div className="flex-shrink-0 w-180 cursor-pointer">
-              <img
-                src={video.thumbnail}
-                alt={video.title}
-                className="border-2 rounded-xl border-[#b20710] shadow-lg hover:scale-103 transition-transform"
-              />
-              <p className="mt-2 text-sm text-center">{video.title}</p>
+            <div className="flex items-center justify-center">
+              <div className="flex-shrink-0 w-[450px] cursor-pointer">
+                <img
+                  src={video.thumbnail_url}
+                  alt={video.title}
+                  className="w-max h-[300px] object-contain border-2 rounded-xl border-[#b20710] shadow-lg hover:scale-103 transition-transform"
+                />
+                <p className="mt-2 text-sm text-center">{video.title}</p>
+              </div>
             </div>
           </Link>
         ))}
