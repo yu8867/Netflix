@@ -14,8 +14,8 @@ history.Base.metadata.create_all(bind=engine)
 
 origins = [
     "http://localhost:3000",
-    "http://192.168.1.6:3000"
-    # "http://127.0.0.1:3000",
+    "http://192.168.1.6:3000",
+    "http://127.0.0.1:3000",
     # "http://192.168.1.6:3000",
 ]
 
@@ -38,6 +38,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 @app.get("/")
 def root(db: Session = Depends(get_db)):
