@@ -44,10 +44,10 @@ const page = () => {
     router.push("/home");
   };
 
-  if (!video) { 
-    return <div className="bg-black text-white min-h-screen">aa</div>;
+  if (!video) {
+    return <div className="bg-black text-white min-h-screen">loading</div>;
   }
-  
+
   return (
     <div className="bg-black text-white min-h-screen">
       <button
@@ -64,7 +64,7 @@ const page = () => {
           className="rounded-xl shadow-lg"
           width="1200"
           controls
-          src={video.url}
+          src={video.video_url}
         />
       </div>
     </div>
