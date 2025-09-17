@@ -39,22 +39,22 @@ const page = () => {
 
     setError("");
 
-    // const thumbnail_url = await uploadToS3(thumbnail, "image");
-    // const video_url = await uploadToS3(video, "video");
+    const thumbnail_url = await uploadToS3(thumbnail, "image");
+    const video_url = await uploadToS3(video, "video");
 
-    // let res = await fetch(`http://127.0.0.1:8000/videos`, {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({
-    //     title,
-    //     description,
-    //     thumbnail_url,
-    //     video_url,
-    //   }),
-    //   credentials: "include",
-    // });
+    let res = await fetch(`http://127.0.0.1:8000/videos`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title,
+        description,
+        thumbnail_url,
+        video_url,
+      }),
+      credentials: "include",
+    });
   };
 
   const toBase64 = (file: File): Promise<string> =>
