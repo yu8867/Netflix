@@ -9,6 +9,7 @@
 - authentication : Json Web Token
 - API check : Postman
 - SQL GUI : DBeaver
+- Bucket : S3
 
 ## 起動
 
@@ -21,10 +22,11 @@
 
 - postgreSQL のリフレッシュ
 
-  - psql -U <username> -d postgres
-  - DROP DATABASE IF EXISTS "netflixDB";
-  - CREATE DATABASE "netflixDB";
-  - \q
+  - psql -U "username" -d postgres
+  - psql
+    - DROP DATABASE IF EXISTS "netflixDB";
+    - CREATE DATABASE "netflixDB";
+    - \q
   - uvicorn main:app --reload
     - local : postgresql://{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD}@localhost:{config.POSTGRES_PORT}/{config.POSTGRES_DB}
     - docker : postgresql://{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD}@{config.POSTGRES_HOST}:{config.POSTGRES_PORT}/{config.POSTGRES_DB}
@@ -45,32 +47,108 @@
 
 ### 全体のステップ計画
 
-- Step 1: 動画をアップロードして再生できる環境を作る
-  AWS S3 に動画を保存
-  Next.js でを使い再生
-  「最低限の Netflix っぽい UI」を実現
+- ✅ Step 1: ユーザー認証
 
-- Step 2: ユーザー認証
-  Firebase Auth or Clerk を使ってログイン機能
-  Netflix っぽく「ログイン画面」を作成
+  - password を hash 化して、DB に保存
 
-- Step 3: バックエンド API
-  FastAPI（Python）で動画のメタデータ（タイトル・説明・URL）を管理
-  Next.js から API を呼び出して表示
+- ✅ Step 2: 動画をアップロードして再生できる環境を作る
 
-- Step 4: 視聴履歴の保存
-  DB (SQLite → PostgreSQL) に「誰が何を見たか」を保存
-  履歴から「最近見た作品」リストを作る
+  - AWS S3 に動画を保存
+  - Next.js でを使い再生(「最低限の Netflix っぽい UI」を実現)
 
-- Step 5: レコメンドエンジン
-  人気順
-  協調フィルタリング（簡易版）
-  最後は TensorFlow で ML モデルを導入
+- ✅ Step 3: バックエンド API
 
-- Step 6: CDN・配信最適化
-  CloudFront or Cloudflare 経由で低遅延配信
-  HLS (m3u8) 形式に変換してストリーミング
+  - FastAPI（Python）で動画のメタデータ（タイトル・説明・URL）を管理
+  - Next.js から API を呼び出して表示
 
-- Step 7: セキュリティ
-  JWT 認証
-  S3/GCS の署名付き URL（直リンク防止）
+- ✅ Step 4: 視聴履歴の保存
+
+  - PostgreSQL に「誰が・いつ・何を見たか」を保存
+  - どのタイミングで動画を start/stop したか収集し、再度開いたとき途中から見れる
+
+- ✅ Step 5: セキュリティ
+
+  - JWT 認証
+  - S3 の署名付き URL（直リンク防止）
+
+- Step 6: コンテンツ表示方法
+
+  - 新作
+  - 人気順
+  - 視聴履歴
+  - ジャンル
+  - 協調フィルタリング（簡易版）
+  - Pytorch で ML モデル開発(Two Tower model、embedding model)
+
+- Step 7: クラウド
+
+  - AWS(VPC、EC2、Route53、RDS Aurora、CDN)
+  - セキュリティグループ、ルートテーブル、オートスケーリング、ELB、InternetGateway
+
+## 改善点
+
+- HLS (m3u8) 形式に変換してストリーミング
+- Redis を使った Cache
+
+## 気づき
+
+- JWT のリフレッシュトークンを DB に保存
+- ServerSide に access token があれば、SSR/ISR ができる
+
+  - 今回は client side の LocalStorage で、access token を保持しているためできない
+  - token は、Cookie で保存しておけばリクエストごとにサーバーに送ることができる
+  - SSR/ISR が使える
+  - XSS 対策になる
+
+- CSR
+
+  - ユーザー固有の表示コンテンツ（マイリスト・視聴履歴・レコメンド結果）は、異なるので CSR で呼ぶ必要がある
+    - fetch のタイミングで user 情報で select するため
+
+- ISR
+
+  - 配列やオブジェクトのような文字列で構成されたデータを fetch した場合は、それらを読み込んだ HTML ファイルが作成される
+  - リクエストされるとサーバーが HTML を作成し、キャッシュとして保存する
+  - validation 指定して期限を設ける
+    - 高頻度で変わる場合は、値を小さくする(ランキング・投稿)
+    - 低頻度の場合、大きくする(ブログ・メタデータ)
+  - .next/cache に HTML が生成される
+
+  ```
+  import type { GetStaticPaths, GetStaticProps } from 'next'
+  export const getStaticProps: GetStaticProps<Props> = async ({
+    params,
+  }: {
+    params: { id: string }
+  }) => {
+    const post = await fetch(`https://api.vercel.app/blog/${params.id}`).then(
+      (res) => res.json()
+    )
+
+    return {
+      props: { post },
+      // Next.js will invalidate the cache when a
+      // request comes in, at most once every 60 seconds.
+      revalidate: 60,
+    }
+  }
+
+  export default function Page({ post }: Props) {
+    return (
+      <main>
+        <h1>{post.title}</h1>
+        <p>{post.content}</p>
+      </main>
+    )
+  }
+  ```
+
+- 使い方
+  - CSR
+    - 署名付き URL
+    - コメント一覧（最新の情報を毎回取得する必要がある）
+    - ユーザー固有のコンテンツ（マイリスト・視聴履歴・おすすめ）
+  - ISR
+    - 動画タイトル・説明文・ジャンル・日付
+    - S3 用の path
+    - ランキングページ（人気動画・ジャンル別）
