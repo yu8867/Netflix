@@ -7,6 +7,7 @@ from database import SessionLocal
 from models.user import User
 from config import config
 
+# tokenを勝手に取ってくれる関数
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 def get_db():
@@ -15,6 +16,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     try:
