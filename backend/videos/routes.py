@@ -144,7 +144,10 @@ def get_viewed_videos(verify: bool = Depends(dependencies.verify_user), email: s
         .all()
     )
     video_ids = [v[0] for v in video_ids]
-    print('✅video_id', video_ids)
+    if len(video_ids) == 0 :
+        return []
+    
+    # print('✅video_id', video_ids)
     # videos = db.query(Video).filter(Video.id.in_(video_ids)).all()
     ordering = case(
         {vid: idx for idx, vid in enumerate(video_ids)},
