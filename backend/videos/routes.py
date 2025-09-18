@@ -3,9 +3,12 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 import boto3, os, uuid
 from config import config
+from sqlalchemy import func, case
 
 from . import schemas, dependencies
 from models.video import Video
+from models.user import User
+from models.history import History
 
 router = APIRouter(prefix='/videos', tags=["Videos"])
 
@@ -67,7 +70,7 @@ def get_videos(verify: bool = Depends(dependencies.verify_user), db:Session = De
     if not verify:
         return []
     
-    videos = db.query(Video).all()
+    videos = db.query(Video).order_by(Video.uploaded_at.desc()).all()
     results = []
     for v in videos:
         thumbnail_url = s3.generate_presigned_url(
@@ -121,3 +124,54 @@ def get_videos(video_id: int, verify: bool = Depends(dependencies.verify_user), 
     }
 
     return video
+
+
+@router.get("/viewed/", response_model=list[schemas.VideoInformation])
+def get_viewed_videos(verify: bool = Depends(dependencies.verify_user), email: str = Depends(dependencies.user_info), db:Session = Depends(get_db)):
+    if not verify or not email:
+        return []
+    
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        return []
+    
+    # video_ids = db.query(History.video_id).filter(History.user_id == user.id).distinct().all()
+    video_ids = (
+        db.query(History.video_id, func.max(History.created_at).label("latest"))
+        .filter(History.user_id == user.id)
+        .group_by(History.video_id)
+        .order_by(func.max(History.created_at).desc())
+        .all()
+    )
+    video_ids = [v[0] for v in video_ids]
+    print('✅video_id', video_ids)
+    # videos = db.query(Video).filter(Video.id.in_(video_ids)).all()
+    ordering = case(
+        {vid: idx for idx, vid in enumerate(video_ids)},
+        value=Video.id
+    )
+
+    videos = (
+        db.query(Video)
+        .filter(Video.id.in_(video_ids))
+        .order_by(ordering)
+        .all()
+    )
+
+    results = []
+    for v in videos:
+        thumbnail_url = s3.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": BUCKET, "Key": v.thumbnail_url},  # ← DBには key を保存
+            ExpiresIn=600
+        )
+
+        results.append({
+            "id": v.id,
+            "title": v.title,
+            "description": v.description,
+            "thumbnail_url": thumbnail_url,
+            "video_url": v.video_url
+        })
+
+    return results
