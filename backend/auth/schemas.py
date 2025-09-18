@@ -17,3 +17,6 @@ class UserInformation(BaseModel):
     id: int
     username: str
     email: str
+
+class UserLogout(BaseModel):
+    message: str
