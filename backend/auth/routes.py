@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, Cookie
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from datetime import datetime, timedelta, timezone
+from pydantic import BaseModel
 
 from models.user import User
 from . import schemas, hashing, jwt_handler, dependencies
@@ -15,9 +15,8 @@ def get_db():
     finally:
         db.close()
 
-
+# 新規登録
 @router.post("/register", response_model=schemas.Token)
-# user: userの登録情報
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     exsiting = db.query(User).filter(User.email == user.email).first()
     if exsiting:
@@ -34,14 +33,13 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db.refresh(new_user)
 
     token = jwt_handler.create_access_token({"sub": new_user.email})
-    return {"access_token": token, "token_type": "bearer"}
+    return { "access_token" : token, "token_type" : "bearer"}
 
-
+# ログイン
 @router.post("/login", response_model=schemas.Token)
-# user: userの登録情報
 def login(response: Response, user: schemas.UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user.email).first()
-    # print(db_user)
+
     if not db_user or not hashing.verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
@@ -57,8 +55,21 @@ def login(response: Response, user: schemas.UserLogin, db: Session = Depends(get
         max_age=60 * 60 * 24 * 30,      # 30日間
     )
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return { "access_token" : access_token, "token_type" : "bearer"}
 
+# ログアウト
+@router.post("/logout", response_model=schemas.UserLogout)
+def logout(response: Response):
+    response.delete_cookie(
+        key="refresh_token",
+        httponly=True,     # 保存時と同じ
+        secure=True,       # 保存時と同じ
+        samesite="None",   # 保存時と同じ
+        path="/"
+    )
+    return { "message" : "Logged out successfully" }
+
+# リフレッシュトークンの作成
 @router.post("/refresh", response_model=schemas.Token)
 def refresh_token(response: Response, refresh_token: str = Cookie(None)):
     if not refresh_token:
@@ -85,11 +96,13 @@ def refresh_token(response: Response, refresh_token: str = Cookie(None)):
 
     return {"access_token": new_access_token, "token_type": "bearer"}
 
+# アカウント取得
 @router.get("/account", response_model=schemas.UserInformation)
 def read_user(response: Response, current_user: User = Depends(dependencies.get_current_user), db: Session = Depends(get_db)):
     return current_user
 
 
+# ユーザー情報取得
 @router.get("/users/{user_id}", response_model=schemas.UserInformation)
 def read_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(dependencies.get_current_user)):
     if current_user.id != user_id:
