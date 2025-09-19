@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ScrollToVideo from "../home/components/ScrollToVideo";
+import ScrollToVideo from "./components/LatestVideo";
 import fetchWithRefresh from "./api";
 import { useRouter } from "next/navigation";
 import Header from "./components/Header";
-import ViewedToVideo from "./components/ViewedToVideo";
+import ViewedToVideo from "./components/ViewedVideo";
+import ViewedVideo from "./components/ViewedVideo";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -53,9 +54,7 @@ export default function Home() {
           <img src="./netflix.png" width={256} className="" />
         </div>
         <ScrollToVideo />
-        <ViewedToVideo />
-        {/* <ScrollToVideo />
-        <ScrollToVideo /> */}
+        <ViewedVideo />
       </div>
     </div>
   );
