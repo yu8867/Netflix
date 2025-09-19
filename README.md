@@ -92,7 +92,11 @@
 
 ## 気づき
 
-- JWT のリフレッシュトークンを DB に保存
+- JWT の扱い
+
+  - localstorage ではなく DB に保存したり、cookie の中に access/refresh token を入れるとよい
+  - db 用のテーブルが別途必要
+
 - ServerSide に access token があれば、SSR/ISR ができる
 
   - 今回は client side の LocalStorage で、access token を保持しているためできない
@@ -143,7 +147,10 @@
   }
   ```
 
+  - 極論、CSR と ISR だけでいい？
+
 - 使い方
+
   - CSR
     - 署名付き URL
     - コメント一覧（最新の情報を毎回取得する必要がある）
@@ -152,3 +159,6 @@
     - 動画タイトル・説明文・ジャンル・日付
     - S3 用の path
     - ランキングページ（人気動画・ジャンル別）
+
+- 「用件定義」・「テーブル設計」・「処理についての説明」はかなり重要
+- EC2 は使わないらしく、ECS・EKS のようなコンテナがメインらしい
