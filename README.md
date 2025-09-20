@@ -1,42 +1,59 @@
 # Netflix
 
+## Display
+
+### ホーム画面
+
+- 最新・視聴履歴の動画表示
+
+![home](./images/home.png)
+
+### ビデオプレビュー画面
+
+- クリックで 3 秒進む・戻る、start/stop の実装
+- 以前の視聴時間を自動保存し、呼び出す
+
+![video](./images/video.png)
+
+### ログイン画面
+
+- email と password を入力
+- jwt による認証
+
+![login](./images/login.png)
+
+### 映画の追加
+
+- 動画・画像・タイトル・詳細を入力し、DB/S3 に保存
+
+![add](./images/add.png)
+
+### ログアウト
+
 ## 技術スタック
 
 - frontend：Typescript（React・Next.js）
 - backend：Python（FastAPI）
 - database：PostgreSQL
 - webserver：Nginx
-- authentication : Json Web Token
+- Authentication : Json Web Token
 - API check : Postman
 - SQL GUI : DBeaver
 - Bucket : S3
 
 ## 起動
 
-- postgreSQL
-  - brew services list
-  - psql postgresql://myuser:passwordabva23fkenjavnklanbv32b2j3@localhost:5432/netflixDB
 - Docker Compose
 
   - docker compose up --build
 
-- postgreSQL のリフレッシュ
+- docker build cache 削除
 
-  - psql -U "username" -d postgres
-  - psql
-    - DROP DATABASE IF EXISTS "netflixDB";
-    - CREATE DATABASE "netflixDB";
-    - \q
-  - uvicorn main:app --reload
-    - local : postgresql://{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD}@localhost:{config.POSTGRES_PORT}/{config.POSTGRES_DB}
-    - docker : postgresql://{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD}@{config.POSTGRES_HOST}:{config.POSTGRES_PORT}/{config.POSTGRES_DB}
+  - docker builder prune
 
 - docker の postgresql 確認
 
   - docker compose exec db psql -U myuser -d netflixDB
-
-- docker build cache 削除
-  - docker builder prune
 
 ## ダミー
 
@@ -78,7 +95,8 @@ data "aws_ami" "ubuntu" {
 
 ## ...
 
-    }
+      }
+    ]
 }
 ```
 
@@ -102,6 +120,52 @@ instance_hostname = "ip-172-31-36-145.us-west-2.compute.internal"
 
 - terraform destroy
   - EC2、VPC など全て削除
+
+## posgresql
+
+- postgreSQL
+
+```
+$ brew services list
+
+# 起動
+$ brew services start postgresql@14
+
+# 接続
+$ psql postgresql://myuser:passwordabva23fkenjavnklanbv32b2j3@localhost:5432/netflixDB
+
+# DB表示
+$ \l
+
+# DB作成
+$ CREATE DATABASE "netflixDB";
+
+# DB削除
+$ DROP DATABASE "netflixDB";
+
+# Table表示
+$ \dt
+
+# Table削除
+$ DROP TABLE video_genres;
+$ DROP TABLE genres;
+
+# postgreSQL のリフレッシュ
+$ psql -U "username" -d postgres
+
+$ DROP DATABASE IF EXISTS "netflixDB";
+$ CREATE DATABASE "netflixDB";
+$ \q
+
+$ uvicorn main:app --reload
+
+
+# local
+postgresql://{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD}@localhost:{config.POSTGRES_PORT}/{config.POSTGRES_DB}
+
+# docker
+postgresql://{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD}@{config.POSTGRES_HOST}:{config.POSTGRES_PORT}/{config.POSTGRES_DB}
+```
 
 ## やること
 
@@ -133,9 +197,9 @@ instance_hostname = "ip-172-31-36-145.us-west-2.compute.internal"
 
 - Step 6: コンテンツ表示方法
 
-  - 新作
+  - ✅ 新作
   - 人気順
-  - 視聴履歴
+  - ✅ 視聴履歴
   - ジャンル
   - 協調フィルタリング（簡易版）
   - Pytorch で ML モデル開発(Two Tower model、embedding model)

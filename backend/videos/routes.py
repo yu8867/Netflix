@@ -28,6 +28,7 @@ def get_db():
     finally:
         db.close()
 
+# S3へのアクセス許可
 @router.get("/upload-url/")
 def create_presigned_url(filename: str, content_type: str, filetype:str):
     ext = filename.split(".")[-1]
@@ -45,6 +46,7 @@ def create_presigned_url(filename: str, content_type: str, filetype:str):
     return {"url": presigned_url, "path": key}
         
 
+# DBに動画情報の追加
 @router.post("/", response_model=schemas.VideoInformation)
 def create_video(video: schemas.VideoCreate, db:Session = Depends(get_db)):
     exsiting = db.query(Video).filter(Video.title == video.title).first()
@@ -65,6 +67,7 @@ def create_video(video: schemas.VideoCreate, db:Session = Depends(get_db)):
     return new_Video
 
 
+# ホーム画面でポスター画像を表示
 @router.get("/", response_model=list[schemas.VideoInformation])
 def get_videos(verify: bool = Depends(dependencies.verify_user), db:Session = Depends(get_db)):
     if not verify:
@@ -75,12 +78,12 @@ def get_videos(verify: bool = Depends(dependencies.verify_user), db:Session = De
     for v in videos:
         thumbnail_url = s3.generate_presigned_url(
             "get_object",
-            Params={"Bucket": BUCKET, "Key": v.thumbnail_url},  # ← DBには key を保存
+            Params={"Bucket": BUCKET, "Key": v.thumbnail_url}, 
             ExpiresIn=600
         )
         # video_url = s3.generate_presigned_url(
         #     "get_object",
-        #     Params={"Bucket": BUCKET, "Key": v.video_url},  # ← DBには key を保存
+        #     Params={"Bucket": BUCKET, "Key": v.video_url},
         #     ExpiresIn=600
         # )
         results.append({
@@ -93,7 +96,7 @@ def get_videos(verify: bool = Depends(dependencies.verify_user), db:Session = De
 
     return results
     
-
+# 単体動画をGetする
 @router.get("/{video_id}", response_model=schemas.VideoInformation)
 def get_videos(video_id: int, verify: bool = Depends(dependencies.verify_user), db:Session = Depends(get_db)):
     if not verify:
@@ -125,7 +128,7 @@ def get_videos(video_id: int, verify: bool = Depends(dependencies.verify_user), 
 
     return video
 
-
+# 視聴履歴のある動画をGetする
 @router.get("/viewed/", response_model=list[schemas.VideoInformation])
 def get_viewed_videos(verify: bool = Depends(dependencies.verify_user), email: str = Depends(dependencies.user_info), db:Session = Depends(get_db)):
     if not verify or not email:
