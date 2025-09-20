@@ -94,8 +94,14 @@ output "instance_hostname" {
 ###############################################################
 $ terraform output
 instance_hostname = "ip-172-31-36-145.us-west-2.compute.internal"
-
 ```
+
+- terraform refresh
+
+  - aws の state を同期（GUI で EC2/VPC を削除したときにとか）
+
+- terraform destroy
+  - EC2、VPC など全て削除
 
 ## やること
 
