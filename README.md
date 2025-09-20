@@ -43,6 +43,60 @@
 - email : exmaple@gmail.com
 - password : 123456
 
+## Terraform
+
+1. terraform init
+2. terraform validate
+3. terraform apply
+
+- terraform state list
+
+```
+data.aws_ami.ubuntu
+aws_instance.app_server
+```
+
+- terraform show
+
+```
+# data.aws_ami.ubuntu:
+data "aws_ami" "ubuntu" {
+    architecture          = "x86_64"
+    arn                   = "arn:aws:ec2:us-west-2::image/ami-0026a04369a3093cc"
+    block_device_mappings = [
+        {
+            device_name  = "/dev/sda1"
+            ebs          = {
+                "delete_on_termination" = "true"
+                "encrypted"             = "false"
+                "iops"                  = "0"
+                "snapshot_id"           = "snap-051c478203945e90f"
+                "throughput"            = "0"
+                "volume_size"           = "8"
+                "volume_type"           = "gp3"
+            }
+
+## ...
+
+    }
+}
+```
+
+- terraform output
+  - outputs.tf
+
+```
+output "instance_hostname" {
+    description = "Private des name of the ec2 instance"
+    value       = aws_instance.app_server.private_dns
+}
+
+###############################################################
+$ terraform output
+instance_hostname = "ip-172-31-36-145.us-west-2.compute.internal"
+
+```
+
 ## やること
 
 ### 全体のステップ計画
