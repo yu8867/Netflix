@@ -4,9 +4,10 @@
 
 ### ホーム画面
 
-- 最新・視聴履歴の動画表示
+- 最新・視聴履歴・ジャンル別に表示
 
-![home](./images/home.png)
+![home01](./images/home01.png)
+![home02](./images/home02.png)
 
 ### ビデオプレビュー画面
 
@@ -52,8 +53,9 @@
   - docker builder prune
 
 - docker の postgresql 確認
-
+  - docker compose up -d db
   - docker compose exec db psql -U myuser -d netflixDB
+  - docker exec -it postgres_db_v2 psql -U myuser -d postgres
 
 ## ダミー
 
@@ -128,37 +130,53 @@ instance_hostname = "ip-172-31-36-145.us-west-2.compute.internal"
 ```
 $ brew services list
 
-# 起動
+### 起動 ###
 $ brew services start postgresql@14
 
-# 接続
+### 接続 ###
 $ psql postgresql://myuser:passwordabva23fkenjavnklanbv32b2j3@localhost:5432/netflixDB
 
-# DB表示
+### DB表示 ###
 $ \l
 
-# DB作成
+#### DB作成 ###
 $ CREATE DATABASE "netflixDB";
 
-# DB削除
+### DB削除 ###
 $ DROP DATABASE "netflixDB";
 
-# Table表示
+### Table表示 ###
 $ \dt
 
-# Table削除
+### Table削除 ###
 $ DROP TABLE video_genres;
 $ DROP TABLE genres;
 
-# postgreSQL のリフレッシュ
+### postgreSQL のリフレッシュ ###
 $ psql -U "username" -d postgres
 
 $ DROP DATABASE IF EXISTS "netflixDB";
 $ CREATE DATABASE "netflixDB";
 $ \q
 
+### DB作成 ###
 $ uvicorn main:app --reload
 
+###############################################################
+### DBコンテナ起動 ###
+$ docker compose up -d db
+
+### DBコンテナ実行 ###
+$ docker compose exec db psql -U myuser -d netflixDB
+$ docker exec -it postgres_db_v2 psql -U myuser -d postgres
+
+### DB削除、作成 ###
+$ DROP DATABASE "netflixDB";
+$ CREATE DATABASE "netflixDB";
+
+### Docker起動 ###
+docker compose up --build
+###############################################################
 
 # local
 postgresql://{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD}@localhost:{config.POSTGRES_PORT}/{config.POSTGRES_DB}
@@ -200,7 +218,7 @@ postgresql://{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD}@{config.POSTGRES_
   - ✅ 新作
   - 人気順
   - ✅ 視聴履歴
-  - ジャンル
+  - ✅ ジャンル
   - 協調フィルタリング（簡易版）
   - Pytorch で ML モデル開発(Two Tower model、embedding model)
 
