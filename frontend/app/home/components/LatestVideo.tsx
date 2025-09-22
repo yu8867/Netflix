@@ -34,14 +34,18 @@ const LatestVideo = () => {
   console.log(videos);
 
   return (
-    <div className="px-6 my-12">
-      <h2 className="text-4xl mb-3">おすすめ作品</h2>
-      <div className="flex space-x-4 overflow-x-auto p-4 mx-4">
-        {videos.map((video) => (
-          <Card key={video.id} video={video} />
-        ))}
-      </div>
-    </div>
+    <>
+      {videos.length !== 0 && (
+        <div className="px-6 my-12">
+          <h2 className="text-4xl mb-3">おすすめ作品</h2>
+          <div className="flex space-x-4 overflow-x-auto p-4 mx-4">
+            {videos.map((video) => (
+              <Card key={video.id} video={video} />
+            ))}
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
