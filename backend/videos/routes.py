@@ -1,14 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import SessionLocal
-import boto3, os, uuid
+import boto3, uuid
 from config import config
 from sqlalchemy import func, case
+from typing import List
 
 from . import schemas, dependencies
-from models.video import Video
+from models.video import Video, Genre
 from models.user import User
 from models.history import History
+
 
 router = APIRouter(prefix='/videos', tags=["Videos"])
 
@@ -49,6 +51,7 @@ def create_presigned_url(filename: str, content_type: str, filetype:str):
 # DBに動画情報の追加
 @router.post("/", response_model=schemas.VideoInformation)
 def create_video(video: schemas.VideoCreate, db:Session = Depends(get_db)):
+    print(video.dict())
     exsiting = db.query(Video).filter(Video.title == video.title).first()
     if exsiting:
         raise HTTPException(status_code=400, detail="Video already registered")
@@ -59,6 +62,10 @@ def create_video(video: schemas.VideoCreate, db:Session = Depends(get_db)):
         thumbnail_url = video.thumbnail_url,
         video_url = video.video_url
     )
+
+    if video.genre_ids:
+        genres = db.query(Genre).filter(Genre.id.in_(video.genre_ids)).all()
+        new_Video.genres = genres
 
     db.add(new_Video)
     db.commit()
@@ -89,6 +96,7 @@ def get_videos(verify: bool = Depends(dependencies.verify_user), db:Session = De
         results.append({
             "id": v.id,
             "title": v.title,
+            "genres": v.genres,
             "description": v.description,
             "thumbnail_url": thumbnail_url,
             "video_url": v.video_url
@@ -96,6 +104,7 @@ def get_videos(verify: bool = Depends(dependencies.verify_user), db:Session = De
 
     return results
     
+
 # 単体動画をGetする
 @router.get("/{video_id}", response_model=schemas.VideoInformation)
 def get_videos(video_id: int, verify: bool = Depends(dependencies.verify_user), db:Session = Depends(get_db)):
@@ -121,12 +130,14 @@ def get_videos(video_id: int, verify: bool = Depends(dependencies.verify_user), 
     video = {
         "id": video.id,
         "title": video.title,
+        "genres": video.genres,
         "description": video.description,
         "thumbnail_url": thumbnail_url,
         "video_url": video_url
     }
 
     return video
+
 
 # 視聴履歴のある動画をGetする
 @router.get("/viewed/", response_model=list[schemas.VideoInformation])
@@ -150,8 +161,6 @@ def get_viewed_videos(verify: bool = Depends(dependencies.verify_user), email: s
     if len(video_ids) == 0 :
         return []
     
-    # print('✅video_id', video_ids)
-    # videos = db.query(Video).filter(Video.id.in_(video_ids)).all()
     ordering = case(
         {vid: idx for idx, vid in enumerate(video_ids)},
         value=Video.id
@@ -175,9 +184,64 @@ def get_viewed_videos(verify: bool = Depends(dependencies.verify_user), email: s
         results.append({
             "id": v.id,
             "title": v.title,
+            "genres": v.genres,
             "description": v.description,
             "thumbnail_url": thumbnail_url,
             "video_url": v.video_url
         })
 
     return results
+
+# ジャンル別に取得
+@router.get("/genres/{genre}", response_model=list[schemas.VideoInformation])
+def get_genre_videos(genre: str, db:Session = Depends(get_db)):
+    videos = db.query(Video).join(Video.genres).filter(Genre.genre == genre).all()
+    results = []
+    for v in videos:
+        thumbnail_url = s3.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": BUCKET, "Key": v.thumbnail_url}, 
+            ExpiresIn=600
+        )
+        # video_url = s3.generate_presigned_url(
+        #     "get_object",
+        #     Params={"Bucket": BUCKET, "Key": v.video_url},
+        #     ExpiresIn=600
+        # )
+        results.append({
+            "id": v.id,
+            "title": v.title,
+            "genres": v.genres,
+            "description": v.description,
+            "thumbnail_url": thumbnail_url,
+            "video_url": v.video_url
+        })
+
+    return results
+
+#######################################################
+##                     ジャンル                       ##
+#######################################################
+
+# GET : /videos/genres/ 
+@router.get("/genres/", response_model=List[schemas.Genre])
+def create_genre(db:Session = Depends(get_db)):
+    genres = db.query(Genre).all()
+    return genres
+
+
+# POST : /videos/genres/ 
+@router.post("/genres/", response_model=schemas.Genre)
+def create_genre(genre: schemas.GenreCreate, db:Session = Depends(get_db)):
+    exsiting = db.query(Genre).filter(Genre.genre == genre.genre).first()
+    if exsiting:
+        raise HTTPException(status_code=400, detail="Genre already registered")
+    
+    new_genre = Genre(
+        genre = genre.genre
+    )
+
+    db.add(new_genre)
+    db.commit()
+    db.refresh(new_genre)
+    return new_genre
