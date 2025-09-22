@@ -11,6 +11,9 @@ const page = () => {
   const [videolPreview, setVideolPreview] = useState<string | null>(null);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<bool>(false);
+  const [genre, setGenre] = useState<Genre[]>([]);
+  const [selectGenre, setSelectGenre] = useState<number[]>([]);
+  const [newGenre, setNewGenre] = useState<string>("");
 
   const uploadToS3 = async (file: File, type: "imgae" | "video") => {
     const res = await fetch(
@@ -35,6 +38,7 @@ const page = () => {
     e.preventDefault();
     if (!title) return setError("タイトルが入力されていません");
     if (!description) return setError("詳細が入力されていません");
+    if (!selectGenre) return setError("詳細が入力されていません");
     if (!thumbnail) return setError("画像がアップロードされていません");
     if (!video) return setError("動画がアップロードされていません");
 
@@ -43,6 +47,9 @@ const page = () => {
 
     const thumbnail_url = await uploadToS3(thumbnail, "image");
     const video_url = await uploadToS3(video, "video");
+    const genre_ids = selectGenre.map((id) => Number(id));
+
+    console.log(genre_ids);
 
     let res = await fetch(`http://127.0.0.1:8000/videos`, {
       method: "POST",
@@ -52,6 +59,7 @@ const page = () => {
       body: JSON.stringify({
         title,
         description,
+        genre_ids,
         thumbnail_url,
         video_url,
       }),
@@ -128,7 +136,41 @@ const page = () => {
     setVideolPreview(null);
   };
 
+  const getGenres = async () => {
+    let res = await fetch(`http://127.0.0.1:8000/videos/genres/`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+
+    if (res?.ok) {
+      const data = await res.json();
+      setGenre(data);
+    }
+  };
+
+  const addGenre = async () => {
+    if (newGenre) {
+      const res = await fetch(`http://127.0.0.1:8000/videos/genres/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          genre: newGenre,
+        }),
+        credentials: "include",
+      });
+      getGenres();
+      setNewGenre("");
+    }
+  };
+
   useEffect(() => {
+    getGenres();
+
     const title = localStorage.getItem("title");
     if (title) {
       setTitle(title);
@@ -137,16 +179,19 @@ const page = () => {
     if (description) {
       setDescription(description);
     }
-    const thumbnail_preview = localStorage.getItem("thumbnail_preview");
-    if (thumbnail_preview) {
-      setThumbnailPreview(thumbnail_preview);
-    }
+    // const thumbnail_preview = localStorage.getItem("thumbnail_preview");
+    // if (thumbnail_preview) {
+    //   setThumbnailPreview(thumbnail_preview);
+    // }
   }, []);
+
+  // console.log(genre);
+  // console.log(selectGenre);
 
   return (
     <>
       <Header className="text-white" />
-      <div className="ml-[6.25%]">
+      <div className="ml-[8.25%]">
         <div className="text-white flex items-center justify-center">
           {loading && (
             <div className="fixed inset-0 flex items-center justify-center bg-opacity-50 z-50">
@@ -263,7 +308,47 @@ const page = () => {
                 </div>
               </div>
 
-              {/*  */}
+              {/* ジャンル */}
+              <div className="border-2 border-white p-2">
+                <div className="text-white text-2xl">ジャンル</div>
+                <div className="grid grid-cols-4 gap-2">
+                  {genre.map((g) => (
+                    <label key={g.id} className="text-white cursor-pointer">
+                      <input
+                        type="checkbox"
+                        value={g.id}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectGenre([...selectGenre, g.id]);
+                          } else {
+                            setSelectGenre(
+                              selectGenre.filter((id) => id != g.id)
+                            );
+                          }
+                        }}
+                        className="w-8 h-4 accent-red-500"
+                      />
+                      <span>{g.genre}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className="my-2 flex items-center justify-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="ジャンルの追加"
+                    value={newGenre}
+                    onChange={(e) => setNewGenre(e.target.value)}
+                    className="p-1 text-white border-2 hover:bg-gray-800"
+                  />
+                  <button
+                    type="button"
+                    onClick={addGenre}
+                    className="w-[128px] p-1 border-2 border-white rounded-xl cursor-pointer hover:bg-white hover:text-black"
+                  >
+                    追加
+                  </button>
+                </div>
+              </div>
 
               <div className="flex flex-col items-center justify-center gap-4 mb-8">
                 <button
