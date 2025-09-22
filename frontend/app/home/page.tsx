@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Header from "./components/Header";
 import ViewedToVideo from "./components/ViewedVideo";
 import ViewedVideo from "./components/ViewedVideo";
+import GenreVideo from "./components/GenreVideo";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -55,6 +56,10 @@ export default function Home() {
         </div>
         <ScrollToVideo />
         <ViewedVideo />
+        <GenreVideo genre={"アニメ"} />
+        <GenreVideo genre={"ホラー"} />
+        <GenreVideo genre={"コメディ"} />
+        <GenreVideo genre={"アクション"} />
       </div>
     </div>
   );
