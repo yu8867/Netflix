@@ -11,3 +11,8 @@ type Video = {
   thumbnail: string;
   url: string;
 };
+
+type Genre = {
+  id: number;
+  genre: string;
+};
