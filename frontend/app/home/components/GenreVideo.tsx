@@ -1,38 +1,16 @@
-import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import fetchWithRefresh from "../api";
 import Card from "./VideoCard";
-
-type GenreVideoProps = {
-  genre: string;
-};
+import getGenreVideo from "../api/genre";
 
 const GenreVideo = ({ genre }: GenreVideoProps) => {
   const [videos, setVideos] = useState<Video[]>([]);
-  const router = useRouter();
 
   useEffect(() => {
-    const checkUser = async () => {
-      let res = await fetchWithRefresh();
-      if (res?.ok) {
-        let token = localStorage.getItem("access_token");
-        let res = await fetch(`http://127.0.0.1:8000/videos/genres/${genre}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          credentials: "include",
-        });
-        // リソースがない場合
-        if (res.status == 404) {
-          return setVideos([]);
-        }
-        const data = await res.json();
-        setVideos(data);
-      } else {
-        router.push("/login");
-      }
+    const fetchData = async () => {
+      const data = await getGenreVideo(genre);
+      setVideos(data);
     };
-    checkUser();
+    fetchData();
   }, [genre]);
 
   return (
