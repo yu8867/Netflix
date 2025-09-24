@@ -1,34 +1,16 @@
-import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import fetchWithRefresh from "../api";
 import Card from "./VideoCard";
+import getViewdVideo from "../api/viewd";
 
 const ViewedVideo = () => {
   const [videos, setVideos] = useState<Video[]>([]);
-  const router = useRouter();
 
   useEffect(() => {
-    const checkUser = async () => {
-      let res = await fetchWithRefresh();
-      if (res?.ok) {
-        let token = localStorage.getItem("access_token");
-        let res = await fetch("http://127.0.0.1:8000/videos/viewed/", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          credentials: "include",
-        });
-        // リソースがない場合
-        if (res.status == 404) {
-          return setVideos([]);
-        }
-        const data = await res.json();
-        setVideos(data);
-      } else {
-        router.push("/login");
-      }
+    const fetchData = async () => {
+      const data = await getViewdVideo();
+      setVideos(data);
     };
-    checkUser();
+    fetchData();
   }, []);
 
   return (
