@@ -16,3 +16,7 @@ type Genre = {
   id: number;
   genre: string;
 };
+
+type GenreVideoProps = {
+  genre: string;
+};
