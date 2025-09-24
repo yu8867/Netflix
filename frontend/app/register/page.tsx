@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
-import fetchRegister from "./api";
+import userRegister from "./api/userRegister";
 
 const page = () => {
   const [email, setEmail] = useState<string>("");
@@ -12,7 +12,7 @@ const page = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetchRegister(username, email, password);
+    const res = await userRegister(username, email, password);
 
     if (!res.ok) {
       setMessage("ログイン失敗。ユーザー名/パスワードを確認してください。");
