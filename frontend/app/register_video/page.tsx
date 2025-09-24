@@ -1,6 +1,12 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Header from "../home/components/Header";
+import Header from "../components/Header";
+import fetchWithRefresh from "../utils/api";
+import { useRouter } from "next/navigation";
+import registerVideo from "./api/registerVideo";
+import getGenresTags from "./api/getGenre";
+import registerGenre from "./api/registerGenre";
+import upLoadS3 from "./api/upLoadS3";
 
 const page = () => {
   const [title, setTitle] = useState<string>("");
@@ -14,25 +20,7 @@ const page = () => {
   const [genre, setGenre] = useState<Genre[]>([]);
   const [selectGenre, setSelectGenre] = useState<number[]>([]);
   const [newGenre, setNewGenre] = useState<string>("");
-
-  const uploadToS3 = async (file: File, type: "imgae" | "video") => {
-    const res = await fetch(
-      `http://127.0.0.1:8000/videos/upload-url/?filename=${encodeURIComponent(
-        file.name
-      )}&content_type=${file.type}&filetype=${type}`
-    );
-    const { url, path } = await res.json();
-
-    await fetch(url, {
-      method: "PUT",
-      headers: {
-        "Content-Type": file.type,
-      },
-      body: file,
-    });
-
-    return path;
-  };
+  const router = useRouter();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,28 +33,19 @@ const page = () => {
     setError("");
     setLoading(true);
 
-    const thumbnail_url = await uploadToS3(thumbnail, "image");
-    const video_url = await uploadToS3(video, "video");
+    const thumbnail_url = await upLoadS3(thumbnail, "image");
+    const video_url = await upLoadS3(video, "video");
     const genre_ids = selectGenre.map((id) => Number(id));
 
-    console.log(genre_ids);
+    const res = await registerVideo(
+      title,
+      description,
+      genre_ids,
+      thumbnail_url,
+      video_url
+    );
 
-    let res = await fetch(`http://127.0.0.1:8000/videos`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title,
-        description,
-        genre_ids,
-        thumbnail_url,
-        video_url,
-      }),
-      credentials: "include",
-    });
-
-    if (res.ok) {
+    if (res?.ok) {
       setLoading(false);
       setTitle("");
       setVideo("");
@@ -105,11 +84,8 @@ const page = () => {
       setThumbnail(file);
       const base64 = await toBase64(file);
       setThumbnailPreview(base64);
-      localStorage.setItem("thumbnail_preview", base64); // 保存
-      localStorage.setItem("thumbnail", file);
     } else {
       setThumbnailPreview(null);
-      localStorage.removeItem("thumbnail");
     }
   };
 
@@ -127,8 +103,6 @@ const page = () => {
   const deleteThumbnailChanege = () => {
     setThumbnailPreview(null);
     setThumbnail("");
-    localStorage.removeItem("thumbnail");
-    localStorage.removeItem("thumbnail_preview");
   };
 
   const deleteVideoChanege = () => {
@@ -136,40 +110,27 @@ const page = () => {
     setVideolPreview(null);
   };
 
-  const getGenres = async () => {
-    let res = await fetch(`http://127.0.0.1:8000/videos/genres/`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-
-    if (res?.ok) {
-      const data = await res.json();
-      setGenre(data);
-    }
+  const getGenre = async () => {
+    const genre = await getGenresTags();
+    setGenre(genre);
   };
 
   const addGenre = async () => {
-    if (newGenre) {
-      const res = await fetch(`http://127.0.0.1:8000/videos/genres/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          genre: newGenre,
-        }),
-        credentials: "include",
-      });
-      getGenres();
-      setNewGenre("");
-    }
+    const res = await registerGenre(newGenre);
+    getGenre();
+    setNewGenre("");
   };
 
   useEffect(() => {
-    getGenres();
+    const getGenre = async () => {
+      const genre = await getGenresTags();
+      setGenre(genre);
+    };
+
+    const res = fetchWithRefresh();
+    if (!res) {
+      router.push("/login");
+    }
 
     const title = localStorage.getItem("title");
     if (title) {
@@ -179,14 +140,8 @@ const page = () => {
     if (description) {
       setDescription(description);
     }
-    // const thumbnail_preview = localStorage.getItem("thumbnail_preview");
-    // if (thumbnail_preview) {
-    //   setThumbnailPreview(thumbnail_preview);
-    // }
+    getGenre();
   }, []);
-
-  // console.log(genre);
-  // console.log(selectGenre);
 
   return (
     <>
