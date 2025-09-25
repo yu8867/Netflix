@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { fetchVideo, fetchLastHistory, postHistoryEvent } from "../lib/api";
+import fetchVideo from "../api/getVideo";
+import fetchLastHistory from "../api/getLastHistory";
+import postHistoryEvent from "../api/registerHistory";
 
 export function useVideoPlayer(videoId: string) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -9,9 +11,8 @@ export function useVideoPlayer(videoId: string) {
 
   useEffect(() => {
     if (!videoId) return;
-    const token = localStorage.getItem("access_token") || "";
 
-    fetchVideo(videoId, token)
+    fetchVideo(videoId)
       .then(setVideo)
       .catch((err) => console.log("Auth Error", err));
   }, []);
@@ -20,22 +21,19 @@ export function useVideoPlayer(videoId: string) {
     const videoEl = videoRef.current;
     if (!videoEl || !video) return;
 
-    const token = localStorage.getItem("access_token") || "";
     videoEl.autoplay = true;
 
     // 前回の視聴位置を復元
-    fetchLastHistory(videoId, token)
+    fetchLastHistory(videoId)
       .then((data) => {
         videoEl.currentTime = data.timestamp;
       })
       .catch((err) => console.log("Auth Error", err));
 
-    // const onPlay = () =>
-    //   postHistoryEvent(Number(videoId), "play", videoEl.currentTime, token);
     const onPause = () =>
-      postHistoryEvent(Number(videoId), "pause", videoEl.currentTime, token);
+      postHistoryEvent(Number(videoId), "pause", videoEl.currentTime);
     const onEnded = () =>
-      postHistoryEvent(Number(videoId), "ended", videoEl.currentTime, token);
+      postHistoryEvent(Number(videoId), "ended", videoEl.currentTime);
 
     // videoEl.addEventListener("play", onPlay);
     videoEl.addEventListener("pause", onPause);
